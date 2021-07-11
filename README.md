@@ -5,20 +5,30 @@ The class listens to the file system change notifications and raises events when
 
 ### Example
 ```
-fw     TFileWatchManager  !- class instance
-
+fw                       TFileWatchManager    !- class instance
+sFolderName              STRING(256), AUTO    !- folder to listen for changes
+bIncludeChildren         BOOL, AUTO           !- listen for subdirs changes as well.
+dwNotifyFilter           typFILE_NOTIFY, AUTO !- notifications.
+sFileName                STRING(256), AUTO    !- file/dir name which raised an event.
+dwAction                 typFILE_ACTION, AUTO !- notification action
   CODE
+
   !- Start listen to the folder.
-  fw.Run('C:\path\to\folder', TRUE, FILE_NOTIFY_CHANGE_LAST_WRITE + FILE_NOTIFY_CHANGE_CREATION + FILE_NOTIFY_CHANGE_FILE_NAME)
+  sFolderName = 'C:\path\to\folder'
+  bIncludeChildren = TRUE
+  dwNotifyFilter = FILE_NOTIFY_CHANGE_LAST_WRITE + FILE_NOTIFY_CHANGE_CREATION + FILE_NOTIFY_CHANGE_FILE_NAME
+  fw.Run(sFolderName, bIncludeChildren, dwNotifyFilter)
 
   OPEN(Window)
   ACCEPT
-    IF fw.TakeNotify(sFileName, nFWAction)
-      !- something changed in the listening folder.
-      !- sFileName - the name of affected object (file or subdir).
-      !- nFWAction - the action occured.
+    IF fw.TakeNotify(sFileName, dwAction)
+      !- log the changes
+      printd('%s: %s', sFileName, ExplainNotifyAction(dwAction))
     END
   END
+
+  !- stop listening.
+  fw.Terminate()
 ```
 
 ## Requirements
